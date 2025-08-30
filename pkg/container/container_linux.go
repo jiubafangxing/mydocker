@@ -40,5 +40,19 @@ func RunContainerInitProcess(command string, args []string) error {
 		logrus.Errorf("Mount proc error %v", err)
 		return err
 	}
+	
+	// 查找命令路径
+	path, err := exec.LookPath(command)
+	if err != nil {
+		logrus.Errorf("Exec loop path error %v", err)
+		return err
+	}
+	logrus.Infof("Find path %s", path)
+	
+	// 执行用户命令
+	if err := syscall.Exec(path, args[0:], os.Environ()); err != nil {
+		logrus.Error(err.Error())
+		return err
+	}
 	return nil
 }
