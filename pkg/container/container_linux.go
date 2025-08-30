@@ -41,6 +41,7 @@ func RunContainerInitProcess(command string, args []string) error {
 
 	// 设置默认的mount flags
 	defaultMountFlags := syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
+	syscall.Mount("", "/", "", syscall.MS_PRIVATE|syscall.MS_REC, "")
 	if err := syscall.Mount("proc", "/proc", "proc", uintptr(defaultMountFlags), ""); err != nil {
 		logrus.Errorf("Mount proc error: %v", err)
 		return err
