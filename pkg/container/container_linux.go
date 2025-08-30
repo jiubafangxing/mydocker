@@ -7,8 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
-
-	"golang.org/x/sys/unix"
 )
 
 // NewParentProcess 创建一个新的父进程 (Linux版本)
@@ -25,9 +23,9 @@ func NewParentProcess(tty bool, command string) *exec.Cmd {
 
 	cmd := exec.Command(exePath, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: unix.CLONE_NEWUTS | unix.CLONE_NEWPID |
-			unix.CLONE_NEWNS | unix.CLONE_NEWNET |
-			unix.CLONE_NEWIPC,
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID |
+			syscall.CLONE_NEWNS | syscall.CLONE_NEWNET |
+			syscall.CLONE_NEWIPC,
 	}
 	if tty {
 		cmd.Stdin = os.Stdin
