@@ -50,7 +50,7 @@ func RunContainerInitProcess(command string, args []string) error {
 	logrus.Info("Successfully mounted /proc")
 	argv := []string{command}
 	// 执行用户命令，替换当前进程
-	logrus.Infof("Executing command: %s with args: %v", path, args)
+	//logrus.Infof("Executing command: %s with args: %v", path, args)
 	if err := syscall.Exec(command, argv, os.Environ()); err != nil {
 		logrus.Errorf("Failed to exec command: %v", err)
 		return err
