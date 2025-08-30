@@ -20,7 +20,7 @@ func NewParentProcess(tty bool, command string) *exec.Cmd {
 		// 回退到使用 /proc/self/exe
 		exePath = "/proc/self/exe"
 	}
-	log.Infof("start run proc/self.exe")
+	logrus.Infof("start run proc/self.exe")
 	cmd := exec.Command(exePath, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID |
