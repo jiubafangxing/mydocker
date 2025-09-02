@@ -4,6 +4,7 @@ import (
 	"context"
 	"mydocker/pkg/cgroups"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v3"
@@ -14,8 +15,8 @@ import (
 const usage = "this is a demo docker "
 
 // Run 执行具体command
-func Run(tty bool, command string, res *cgroups.ResourceConfig) {
-	cmd, w := container.NewParentProcess(tty, command)
+func Run(tty bool, command []string, res *cgroups.ResourceConfig) {
+	cmd, w := container.NewParentProcess(tty)
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
 	}
@@ -25,8 +26,16 @@ func Run(tty bool, command string, res *cgroups.ResourceConfig) {
 	}
 	cgroupManager.Set(res)
 	cgroupManager.AddProcess(cmd.Process.Pid)
+	sendInitCommand(command, w)
 	cmd.Wait()
 	os.Exit(-1)
+}
+
+func sendInitCommand(cmds []string, writePipe *os.File) {
+	command := strings.Join(cmds, " ")
+	log.Infof("command all is %s", command)
+	writePipe.WriteString(command)
+	writePipe.Close()
 }
 
 func main() {
@@ -82,7 +91,7 @@ var initCommand = cli.Command{
 		log.Info("init come on")
 		cmd := ctx.Args().First()
 		log.Infof("command %s", cmd)
-		err := container.RunContainerInitProcess(cmd, ctx.Args().Slice())
+		err := container.RunContainerInitProcess()
 		return err
 	},
 }

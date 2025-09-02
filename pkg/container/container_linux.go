@@ -13,9 +13,7 @@ import (
 )
 
 // NewParentProcess 创建一个新的父进程 (Linux版本)
-func NewParentProcess(tty bool, command string) (*exec.Cmd, *os.File) {
-	args := []string{"init", command}
-
+func NewParentProcess(tty bool) (*exec.Cmd, *os.File) {
 	// 获取当前可执行文件的绝对路径
 	exePath, err := os.Executable()
 	if err != nil {
@@ -24,7 +22,7 @@ func NewParentProcess(tty bool, command string) (*exec.Cmd, *os.File) {
 		exePath = "/proc/self/exe"
 	}
 	logrus.Infof("start run proc/self.exe")
-	cmd := exec.Command(exePath, args...)
+	cmd := exec.Command(exePath, "init")
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID |
 			syscall.CLONE_NEWNS | syscall.CLONE_NEWNET |
