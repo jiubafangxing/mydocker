@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"mydocker/pkg/cgroups"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -13,11 +14,17 @@ import (
 const usage = "this is a demo docker "
 
 // Run 执行具体command
-func Run(tty bool, command string) {
+func Run(tty bool, command string, res *cgroups.ResourceConfig) {
 	parent := container.NewParentProcess(tty, command)
 	if err := parent.Start(); err != nil {
 		log.Error(err)
 	}
+	cgroupManager, err := cgroups.NewV2CgroupManager("my-docker-cgroup")
+	if err != nil {
+		log.Errorf("Failed to create cgroup manager: %v", err)
+	}
+	cgroupManager.Set(res)
+	cgroupManager.AddProcess(parent.Process.Pid)
 	parent.Wait()
 	os.Exit(-1)
 }
@@ -63,7 +70,7 @@ var runCommand = cli.Command{
 		log.Infof("enable tty %v", tty)
 		log.Infof("command %s", cmd)
 
-		Run(tty, cmd)
+		Run(tty, cmd, nil)
 		return nil
 	},
 }
