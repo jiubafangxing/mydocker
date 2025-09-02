@@ -3,14 +3,17 @@
 package container
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 )
 
 // NewParentProcess 创建一个新的父进程 (Linux版本)
-func NewParentProcess(tty bool, command string) *exec.Cmd {
+func NewParentProcess(tty bool, command string) (*exec.Cmd, *os.File) {
 	args := []string{"init", command}
 
 	// 获取当前可执行文件的绝对路径
@@ -32,13 +35,25 @@ func NewParentProcess(tty bool, command string) *exec.Cmd {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
-	return cmd
+
+	//设置匿名管道用户主子进程进行通信
+
+	r, w, err := os.Pipe()
+	if nil != err {
+		logrus.Errorf("NewParentProcess err to create pipe %s", err)
+		return nil, nil
+	}
+	cmd.ExtraFiles = []*os.File{r}
+	return cmd, w
 }
 
 // RunContainerInitProcess 运行容器初始化进程 (Linux版本)
-func RunContainerInitProcess(command string, args []string) error {
+func RunContainerInitProcess() error {
+	command := readUserCommand()
+	if nil == command || len(command) == 0 {
+		return fmt.Errorf("not fetch command from master process")
+	}
 	logrus.Infof("init process started, command: %s", command)
-
 	// 设置默认的mount flags
 	defaultMountFlags := syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
 	syscall.Mount("", "/", "", syscall.MS_PRIVATE|syscall.MS_REC, "")
@@ -46,13 +61,24 @@ func RunContainerInitProcess(command string, args []string) error {
 		logrus.Errorf("Mount proc error: %v", err)
 		return err
 	}
-	logrus.Info("Successfully mounted /proc")
-	argv := []string{command}
-	// 执行用户命令，替换当前进程
-	//logrus.Infof("Executing command: %s with args: %v", path, args)
-	if err := syscall.Exec(command, argv, os.Environ()); err != nil {
+	cmdAbsloutePath, err := exec.LookPath(command[0])
+	if nil != err {
+		return fmt.Errorf("command not exist")
+	}
+
+	if err := syscall.Exec(cmdAbsloutePath, command[0:], os.Environ()); err != nil {
 		logrus.Errorf("Failed to exec command: %v", err)
 		return err
 	}
 	return nil
+}
+
+func readUserCommand() []string {
+	r := os.NewFile(uintptr(3), "pipe")
+	contents, err := io.ReadAll(r)
+	if nil != err {
+		return nil
+	}
+	cmdStr := string(contents)
+	return strings.Split(cmdStr, " ")
 }

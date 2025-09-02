@@ -15,8 +15,8 @@ const usage = "this is a demo docker "
 
 // Run 执行具体command
 func Run(tty bool, command string, res *cgroups.ResourceConfig) {
-	parent := container.NewParentProcess(tty, command)
-	if err := parent.Start(); err != nil {
+	cmd, w := container.NewParentProcess(tty, command)
+	if err := cmd.Start(); err != nil {
 		log.Error(err)
 	}
 	cgroupManager, err := cgroups.NewV2CgroupManager("my-docker-cgroup")
@@ -24,8 +24,8 @@ func Run(tty bool, command string, res *cgroups.ResourceConfig) {
 		log.Errorf("Failed to create cgroup manager: %v", err)
 	}
 	cgroupManager.Set(res)
-	cgroupManager.AddProcess(parent.Process.Pid)
-	parent.Wait()
+	cgroupManager.AddProcess(cmd.Process.Pid)
+	cmd.Wait()
 	os.Exit(-1)
 }
 
