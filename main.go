@@ -73,13 +73,14 @@ var runCommand = cli.Command{
 		if ctx.Args().Len() < 1 {
 			return cli.Exit("Missing container command", 1)
 		}
-		cmd := ctx.Args().First()
+		cmd := ctx.Args()
 		tty := ctx.Bool("ti")
 
 		log.Infof("enable tty %v", tty)
 		log.Infof("command %s", cmd)
-
-		Run(tty, cmd, nil)
+		var cmdArray []string
+		//todo 遍历cmd
+		Run(tty, cmdArray, nil)
 		return nil
 	},
 }
