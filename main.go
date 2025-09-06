@@ -79,8 +79,22 @@ var runCommand = cli.Command{
 		log.Infof("enable tty %v", tty)
 		log.Infof("command %s", cmd)
 		var cmdArray []string
-		//todo 遍历cmd
-		Run(tty, cmdArray, nil)
+		for _, arg := range ctx.Args().Slice() {
+			cmdArray = append(cmdArray, arg)
+		}
+		resConf := &cgroups.ResourceConfig{
+			MemoryLimit: ctx.String("m"),
+			CpuSet:      ctx.String("cpuset"),
+			CpuShare:    ctx.String("cpushare"),
+		}
+		log.Infof("createTty %v", tty)
+		//containerName := ctx.String("name")
+		//volume := ctx.String("v")
+		//network := ctx.String("net")
+		//
+		//envSlice := ctx.StringSlice("e")
+		//portmapping := ctx.StringSlice("p")
+		Run(tty, cmdArray[1:], resConf)
 		return nil
 	},
 }
