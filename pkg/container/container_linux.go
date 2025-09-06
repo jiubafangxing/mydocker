@@ -61,7 +61,7 @@ func RunContainerInitProcess() error {
 	}
 	cmdAbsloutePath, err := exec.LookPath(command[0])
 	if nil != err {
-		return fmt.Errorf("command not exist")
+		return fmt.Errorf("command %s not exist", command[0])
 	}
 
 	if err := syscall.Exec(cmdAbsloutePath, command[0:], os.Environ()); err != nil {
