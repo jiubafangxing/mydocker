@@ -83,9 +83,9 @@ var runCommand = cli.Command{
 			cmdArray = append(cmdArray, arg)
 		}
 		resConf := &cgroups.ResourceConfig{
-			MemoryLimit: ctx.String("m"),
-			CpuSet:      ctx.String("cpuset"),
-			CpuShare:    ctx.String("cpushare"),
+			MemoryLimit: defaultIfEmpty(ctx.String("m"), "512m"),
+			CpuSet:      defaultIfEmpty(ctx.String("cpuset"), "0"),
+			CpuShare:    defaultIfEmpty(ctx.String("cpushare"), "1024"),
 		}
 		log.Infof("createTty %v", tty)
 		//containerName := ctx.String("name")
@@ -97,6 +97,13 @@ var runCommand = cli.Command{
 		Run(tty, cmdArray[1:], resConf)
 		return nil
 	},
+}
+
+func defaultIfEmpty(val, def string) string {
+	if val == "" {
+		return def
+	}
+	return val
 }
 
 var initCommand = cli.Command{
